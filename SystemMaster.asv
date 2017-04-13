@@ -5,7 +5,10 @@ close all
 % Walks through the noise calculations of a tia^
 
 %% System Parameters:
+responsivity = 0.7;
+
 OPTICAL_POWER = 0.005/(pi*0.005.^2);
+SIGNAL = OPTICAL_POWER* responsivity;
 T = 273 %Kelvin
 
 
@@ -98,32 +101,54 @@ opspecs = opa111(w);
     
     %%
     figure
-    hold on
-    plot(log10(w),mag2db(en*1E9));
-    plot(log10(w),mag2db(noise_tf),'.');
-    plot(log10(w),mag2db(v_noise*1E9));
+    loglog(w, v_noise);
     
-    title('Voltage Noise Transfer Functions');
-    xlabel('10^x Hz');
-    ylabel('db Gain');
-    legend('en','tf');
+    title('Total Voltage Noise');
+    xlabel('Hz');
+    ylabel('V per rt Hz');
+    legend('V_noise');
 
 %%
 %Input Current Noise
 %warning, these are functions of frequency. Must have some w defined.
     c = 1.60217662E-19; %TODO, HOW to actually do shot noise. This is an educated guess.
-    SHOT = 2.*c.*I_DC*w;
+    SHOT = 2.*c.*I_DC;
     K = 1.38E-23 %Boltzmann's
-    RES = 4*K*T*R2 * w;%Resistor Noise
-    i_n = sqrt( OPAMP_INOISE.^2 + SHOT.^2 + RES.^2);
-    Z2 = (R2.^-1 + (1./(w.*C2)).^-1).^-1;
-    i_noise = i_n .* Z2;
+    RES = 4*K*T*R2;%Resistor Noise
+    i_n =  (OPAMP_INOISE.^2 + SHOT.^2 + RES.^2).^.5;
+    i_n_ropamp =  (OPAMP_INOISE.^2 ).^.5;
+    %Z2 = (R2.^-1 + (1./(w.*C2)).^-1).^-1;    
+    i_noise = i_n .* noise_tf;
+    i_noise_op = i_n_ropamp.*noise_tf;
         %%
         figure
+        loglog(w,i_noise);
+        title('Total Current Refered Noise (TIA)');
+        xlabel('Hz');
+        ylabel('V per rt Hz');
+        
+        figure
         hold on
-        plot(log10(w),mag2db(OPAMP_INOISE));
-        plot(log10(w),mag2db(i_noise));
-        title('Current Noise Transfer Functions');
+        plot(log10(w),log10(i_noise_op));
+        plot(log10(w),log10(SHOT*noise_tf));
+        plot(log10(w),log10(RES*noise_tf));
+        title('Noise Contributions (Through Opamp)');
         xlabel('10^x Hz');
-        ylabel('db Gain');
-        legend('opamp inoise','Total inoise');
+        ylabel('V per rt Hz');
+        legend('opamp inoise','Shot Noise', 'Resistor Noise');
+        
+%%
+%Putting all the TIA stuff together;
+OUTPUT = SIGNAL * noise_tf;
+NOISE = (v_noise.^2 + i_noise.^2) .^0.5;
+figure
+loglog(w,NOISE,'.');
+hold on;
+loglog(w,v_noise);
+loglog(w,i_noise);
+legend('Total Noise', 'Voltage Noise', 'Current Noise');
+title('Total TIA noise');
+xlabel('Hz');
+ylabel('V per rt Hz');
+%loglog(OUTPUT);
+get       

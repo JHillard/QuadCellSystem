@@ -10,6 +10,8 @@ function inoise = opamp_vnoise(dc, pole, slope,f);
     %n = -(P-T)/CORN_F*F + P;
     n = 10.^n;
     n(f<pole) = dc;
+    q = find(f<1E6);
+    n(f>1E6)=n(q(end));
     inoise = n;
     
     
