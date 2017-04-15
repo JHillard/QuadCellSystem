@@ -12,10 +12,10 @@ function output_package= tia_block(sigs, bandwidth, w, df);
     
     %% System Parameters:
     opspecs = opa657(w);
-    photspecs = s5981();
+    photspecs = s5980();
     
     if( Rf == -1)
-        Rf = 10E6; %10Meg CHANGE VALUE HERE
+        Rf = 100E3; %10Meg CHANGE VALUE HERE
     end
     if( Cf == -1)
         Cf = 1E-12; %1pF CHANGE VALUE HERE
@@ -48,22 +48,32 @@ function output_package= tia_block(sigs, bandwidth, w, df);
     
     
     
-    %%    
+    %% 
+    %Misc Amplifier:
+        XC2 = 1./(C2.*w);
+        transfer_function = (1./R2 + 1./XC2).^-1;
+        if(verbose == 1)
+            figure
+            plot(log10(w),mag2db(transfer_function));
+            title('Transfer function of OpAmp');
+            xlabel('10^x Hz');
+            ylabel('dB');
     %Amplifer Voltage Noise
         A = OPAMP_OPENLOOPGAIN; % Open loop gain
         j = (-1)^.5;
+        s = j.*w;
         C1S = 1*w.*C1;
         C2S = 1*w.*C2;
-        inv_B = 1 + R2.*(R1.*C1S+1)./(R1.*(R2.*C2S+1));
+        inv_B = 1+ R2*(R1*C1*s+1)./(R2*C2.*s+1)/R1;
         %https://en.wikipedia.org/wiki/Transimpedance_amplifier
         %Try using ^ to set Beta's.
         B=1./inv_B;
         AB = A.*B; % loop gain
         en = OPAMP_VNOISE;
         eo = en.*(A./(1+AB));
-        transfer_function = 1./C1S.*Rf./(1+inv_B./A);
-        
-        noise_tf = inv_B.*(1./(1+inv_B./A));
+        %transfer_function = 1./C1S.*Rf./(1+inv_B./A);
+        %transfer_function = A./(1+AB);
+        noise_tf = abs( inv_B.*(1./(1+inv_B./A)) );
         %noise_tf = (A./(1+AB));
         v_noise = en.* noise_tf;
         %THE NOISE WILL LOOK WEIRD IF YOU PLOT IT. 
@@ -81,13 +91,15 @@ function output_package= tia_block(sigs, bandwidth, w, df);
         plot(log10(w),mag2db(B));
         plot(log10(w),mag2db(en*1E9));
         plot(log10(w),mag2db(en.*noise_tf.*1E9));
-        plot(log10(w),mag2db(transfer_function),'.');
+        plot(log10(w),mag2db(transfer_function));
+        plot(log10(w),mag2db(ones(length(w))'*Rf),'.');
+        
         
         %plot(log10(w),mag2db(inv_B));
         title('Voltage Noise Transfer Functions');
         xlabel('10^x Hz');
         ylabel('db Gain');
-        legend('AB','1/B','V_noise TF','A','B','en','final_noise');
+        legend('AB','1/B','V_noise TF','A','B','en','final_noise','Transfer function');
         
         figure
         loglog(w, v_noise);
@@ -111,7 +123,7 @@ function output_package= tia_block(sigs, bandwidth, w, df);
             loglog(w, op_noise);
             hold on;
             loglog(w,op_signal);
-            title('Total Voltage Refered Optical Signal');
+            title('Optical Signals (Voltagized)');
             xlabel('Hz');
             ylabel('V per rt Hz');
             legend('optical noise','optical signal');
@@ -126,9 +138,12 @@ function output_package= tia_block(sigs, bandwidth, w, df);
         i_n =  (OPAMP_INOISE.^2 + SHOT.^2 + RES.^2).^.5;
         i_n_ropamp =  (OPAMP_INOISE.^2 ).^.5;
         %Z2 = (R2.^-1 + (1./(w.*C2)).^-1).^-1;    
-        i_noise = i_n .* noise_tf;
-        i_noise_op = i_n_ropamp.*noise_tf;
-            %%
+        %TODO; DO I ALSO MULTIPLY TF? IDK!
+        i_noise = i_n .* transfer_function;
+        i_noise_op =  OPAMP_INOISE .* transfer_function;
+        i_noise_res =  RES .*transfer_function;
+        i_noise_shot =  SHOT .*transfer_function;
+        %
         if(verbose == 1)  
             figure
             loglog(w,i_noise);
@@ -139,12 +154,13 @@ function output_package= tia_block(sigs, bandwidth, w, df);
             figure
             hold on
             plot(log10(w),log10(i_noise_op));
-            plot(log10(w),log10(SHOT*noise_tf));
-            plot(log10(w),log10(RES*noise_tf));
+            plot(log10(w),log10(i_noise));
+            plot(log10(w),log10(i_noise_res));
+            plot(log10(w),log10(i_noise_shot));
             title('Noise Contributions (Through Opamp)');
             xlabel('10^x Hz');
             ylabel('V per rt Hz');
-            legend('opamp inoise','Shot Noise', 'Resistor Noise');
+            legend('opamp inoise','Total inoise', 'Resistor Noise', 'Shot Noise');
         end
     %%
     %Putting all the TIA stuff together;
@@ -159,7 +175,8 @@ function output_package= tia_block(sigs, bandwidth, w, df);
         hold on;
         loglog(w,output_signal);
         loglog(w,tia_noise);
-        legend('Total Noise', 'Output Signal', 'TIA refered noise');
+        loglog(w,op_noise);
+        legend('Total Noise', 'Output Signal', 'TIA refered noise', 'Optical Signal Noise');
         title('TIA Signal and Noise');
         xlabel('Hz');
         ylabel('V per rt Hz');

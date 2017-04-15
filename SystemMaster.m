@@ -9,6 +9,8 @@ recieved_optical_signal = 22E-6;%Opals prediction.
 recieved_optical_signal = 1E-6;%Opal's prediction w/ airmass=10;
 
 albedo_irradiance = 1E-6; %Noise levels caused by Earth's irradiance and background light.
+albedo_irradiance = 0;
+
     %Todo; Fix. Totally made up number;
 optical_noise = 1E-12; %Laser noise. Atmo-noise. Anything the link budget says we've got.
     %Todo; Fix. Also totally made up
