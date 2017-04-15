@@ -7,7 +7,7 @@ function vnoise = opamp_vnoise(peak, corner_freq, trough, f)
     T = log10(trough);
         
     n = -(P-T)/CORN_F*F + P;
-    n = 10.^n
+    n = 10.^n;
     n(f>corner_freq) = trough;
     vnoise = n;
 end
