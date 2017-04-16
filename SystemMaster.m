@@ -48,6 +48,35 @@ ai = albedo_irradiance.*ones(length(w),1)';
 on = optical_noise.*ones(length(w),1)';
 sigs = { recieved_optical_signal, ai, on };
 
+%ground_telescope(w); %Handles ground modulation
+atmo_sigs = atmo_block(ground_sigs, w);
+tia_outputs = tia_block(atmo_sigs, bandwidth, w, df);
+tia_sig = tia_outputs{1};
+tia_noise = tia_outputs{2};
+%signal_processing_block(sigs, w);
 
-tia_block(sigs, bandwidth, w, df);
+%%
+%Converts SNR into an angle
+SNR = logspace(-5,10,1000);
+SNR = get_snr(tia_sig, tia_noise, df);
+%mag2db(SNR) %Sanity check component.
+%from Theory of tracking accuracy of laser systems. eq 62
+spot_size = 0.001; %.2mm
+var_x = SNR.^-1.*(1-8./SNR)./(1+8./SNR).^2;
+dx = spot_size.^2*var_x %denormalized variance. eq 3b
+fc = 0.015 %focal distance assuming simple telescope (it's not)
+var_theta_II = asin(dx/fc);
+
+if(verbose ==1)
+    'Angle Variance: '
+    var_theta_II
+end
+    %target_theta = 1E-6;
+%tg = ones(1,length(SNR))*target_theta;
+%figure
+%semilogy(mag2db(SNR), var_theta_II);
+%title('SNR vs Angular Determination');
+%xlabel('SNR (dB)')
+%ylabel('Radians')
+
 %'yo?'

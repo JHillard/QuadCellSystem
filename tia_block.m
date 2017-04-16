@@ -38,6 +38,7 @@ function output_package= tia_block(sigs, bandwidth, w, df);
     PHOTODIODE_RESPONSIVITY = photspecs{1};
     PHOTODIODE_CAPACITANCE = photspecs{2};
     PHOTODIODE_RESISTANCE = photspecs{3};
+    PHOTODIODE_DARK_CURRENT = photspecs{4};
     R2 = Rf; %Feedback resistance
     C2 = Cf; %Feedback capacitance
     R1 = PHOTODIODE_RESISTANCE; %Diode shunt resistance
@@ -135,14 +136,16 @@ function output_package= tia_block(sigs, bandwidth, w, df);
         SHOT = 2.*c.*I_DC;
         K = 1.38E-23; %Boltzmann's
         RES = 4*K*T*R2;%Resistor Noise
-        i_n =  (OPAMP_INOISE.^2 + SHOT.^2 + RES.^2).^.5;
+        i_n =  (OPAMP_INOISE.^2 + SHOT.^2 + RES.^2 + PHOTODIODE_DARK_CURRENT.^2).^.5;
         i_n_ropamp =  (OPAMP_INOISE.^2 ).^.5;
+        
         %Z2 = (R2.^-1 + (1./(w.*C2)).^-1).^-1;    
         %TODO; DO I ALSO MULTIPLY TF? IDK!
         i_noise = i_n .* transfer_function;
         i_noise_op =  OPAMP_INOISE .* transfer_function;
         i_noise_res =  RES .*transfer_function;
         i_noise_shot =  SHOT .*transfer_function;
+        i_dark = PHOTODIODE_DARK_CURRENT .*transfer_function;
         %
         if(verbose == 1)  
             figure
@@ -157,10 +160,11 @@ function output_package= tia_block(sigs, bandwidth, w, df);
             plot(log10(w),log10(i_noise));
             plot(log10(w),log10(i_noise_res));
             plot(log10(w),log10(i_noise_shot));
+            plot(log10(w),log10(i_dark));
             title('Noise Contributions (Through Opamp)');
             xlabel('10^x Hz');
             ylabel('V per rt Hz');
-            legend('opamp inoise','Total inoise', 'Resistor Noise', 'Shot Noise');
+            legend('opamp inoise','Total inoise', 'Resistor Noise', 'Shot Noise','Dark Current');
         end
     %%
     %Putting all the TIA stuff together;

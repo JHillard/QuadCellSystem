@@ -1,0 +1,17 @@
+function output_package= transmitter_block(sigs, zenith, w, scenario);
+    global verbose
+    signal_transmitted = sigs{1};
+    noise_transmitted = sigs{3};
+    
+    %transmitted signal should be normalized to 
+    %% System Parameters:
+    %Transmitter from OCTL:
+    laser_tx_power = 1.6 %Watts
+    tx_divergance_angle = 1.5E-3 %1.5mRad
+    
+    
+    
+    
+    output_package = {output_signal, output_noise, w, df};
+end
+
