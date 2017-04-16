@@ -17,6 +17,9 @@ optical_noise = 1E-12; %Laser noise. Atmo-noise. Anything the link budget says w
 global verbose;
 verbose = 1;
 
+
+
+
 F_high = 10E6;
 F_low = 2;
 
