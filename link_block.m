@@ -1,5 +1,9 @@
 
 function output_package= link_block(sigs, orbit_package)
+    %Several times in this simulation an OPALS paper is mentioned. It is
+    %universally the "Optical Payload for Lasercomm Science (OPALS) Link
+    %Validation During Operations from the ISS" paper.
+    
     global verbose
     signal_tx = sigs{1};
     noise_tx = sigs{2};
@@ -34,6 +38,10 @@ function output_package= link_block(sigs, orbit_package)
     attenuation = rural_23km_cloudy_model(air_mass);
     %Rural_20km fit Opal's mission the best. 
     atmo_signal = geometeric_signal.*db2mag(attenuation);
+    %Todo: add variance to the signals based on figure 5.
+    %Best case, it's 1E-2
+    %worst case, it's 0.3 of the range.
+    
     if(verbose)
         'Atmospheric Attenuation'
         attenuation
