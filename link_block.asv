@@ -16,9 +16,9 @@ function output_package= link_block(sigs, orbit_package, pointing_package)
     
     global verbose
     global best_case
-    time = sigs{1}; %seconds
-    signal_tx = sigs{2}; %unitless amplitude.
-    noise_tx = sigs{3}; %unitless amplitude.
+    time = sigs{1};
+    signal_tx = sigs{2};
+    noise_tx = sigs{3};
 
     signal_power = sigs{4};
     noise_power = sigs{5};
@@ -89,7 +89,6 @@ function output_package= link_block(sigs, orbit_package, pointing_package)
     %Putting it all together
     total_signal = pointed_signal;
     total_noise = atmo_noise + atmo_bg_noise;
-    %Todo: Add pointing noise.
     
     total_signal_level = rms(total_signal);
     total_noise_level = (rms(atmo_noise).^2 + rms(atmo_bg_noise).^2).^0.5;
