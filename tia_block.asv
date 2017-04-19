@@ -5,9 +5,8 @@ function output_package= tia_block(sigs, bandwidth, w, df);
     % Walks through the noise calculations of a tia^
 
     signal_optical = sigs{1};
-    noise_optical = sigs{2};
-    offset_optical = sigs{3}; %From Earth Albedo. Treated as a white noise source of this amplitude.
-    
+    offset_optical = sigs{2}; %From Earth Albedo. Treated as a white noise source of this amplitude.
+    noise_optical = sigs{3};
     Rf=-1;
     Cf=-1;
     
@@ -16,7 +15,7 @@ function output_package= tia_block(sigs, bandwidth, w, df);
     photspecs = s5980();
     
     if( Rf == -1)
-        Rf = 1E3; %1k CHANGE VALUE HERE
+        Rf = 100E3; %10Meg CHANGE VALUE HERE
     end
     if( Cf == -1)
         Cf = 1E-12; %1pF CHANGE VALUE HERE
@@ -127,11 +126,10 @@ function output_package= tia_block(sigs, bandwidth, w, df);
             loglog(w, op_noise);
             hold on;
             loglog(w,op_signal);
-            loglog(w,op_offset);
             title('Optical Signals (Voltagized)');
             xlabel('Hz');
             ylabel('V per rt Hz');
-            legend('optical noise','optical signal','optical offset');
+            legend('optical noise','optical signal');
        end
     %%
     %Input Current Noise
@@ -174,7 +172,6 @@ function output_package= tia_block(sigs, bandwidth, w, df);
     %Putting all the TIA stuff together;
     %output_signal = (signal_optical*responsivity) * noise_tf; %Input optical signal through the circuit
     output_signal = op_signal;
-    output_offset = op_offset;
     output_noise = (op_noise.^2 + v_noise.^2 + i_noise.^2) .^0.5;
     tia_noise = (v_noise.^2 + i_noise.^2) .^0.5;
     
@@ -185,8 +182,7 @@ function output_package= tia_block(sigs, bandwidth, w, df);
         loglog(w,output_signal);
         loglog(w,tia_noise);
         loglog(w,op_noise);
-        loglog(w, ((output_offset+output_signal).^2 + tia_noise.^2 + op_noise.^2).^0.5);
-        legend('Total Noise', 'Output Signal', 'TIA refered noise', 'Optical Signal Noise','Max Output Range');
+        legend('Total Noise', 'Output Signal', 'TIA refered noise', 'Optical Signal Noise');
         title('TIA Signal and Noise');
         xlabel('Hz');
         ylabel('V per rt Hz');

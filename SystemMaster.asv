@@ -66,15 +66,7 @@ pointing_err = 0;
 jitter = 0;
 pointing_package = {pointing_err, jitter};
 
-link_package = link_block(ground_sigs, orbit_package,  pointing_package, optics_package); 
-beacon_signal_power = link_package{1}; %All in W/m^2
-beacon_noise_power = link_package{2};
-background_offset_power = link_package{3}; 
-
-
-tia_outputs = tia_block(link_package, bandwidth, w, df);
-
-
+link_block(ground_sigs, orbit_package,  pointing_package, optics_package); 
 
 %ground_telescope(w); %Handles ground modulation
 %atmo_sigs = link_block(ground_sigs, w);
