@@ -13,7 +13,7 @@ function output_package= tia_block(sigs, bandwidth, w, df);
     
     %% System Parameters:
     opspecs = opa657(w);
-    photspecs = s5980();
+    photspecs = s5981();
     
     if( Rf == -1)
         Rf = 1E3; %1k CHANGE VALUE HERE
